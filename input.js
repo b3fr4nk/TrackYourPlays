@@ -1,6 +1,7 @@
 const teamList = {}
 const main = document.getElementById("main")
 
+//template for player object
 function player(name){
     this.name = name
 
@@ -9,6 +10,7 @@ function player(name){
     this.time = 0
 }
 
+//template for addStatButton and Label
 function addStatButton(playerName){
     this.button = document.createElement("input")
     this.button.setAttribute("id", `${playerName}-add-stat`)
@@ -19,10 +21,11 @@ function addStatButton(playerName){
     this.label.innerHTML = "Add Stat"
 }
 
+
 function addStat(statName, playerName){
     teamList[playerName][statName] = 0
 }
-
+//creates a input field for name of new stat
 function askForStat(playerName){
     const statNameQuery = document.createElement("input")
     statNameQuery.setAttribute("type", "text")
@@ -37,12 +40,14 @@ function askForStat(playerName){
     })
 }
 
+//adds a new player to the team and adds them to the page
 function addToTeam(player){
     teamList[player["name"]] = player
 
     render(main, renderPlayer(player["name"]))
 }
 
+//creates an input field for the name of new player
 function askForPlayer() {
     const playerNameQuery = document.createElement("input")
     playerNameQuery.setAttribute("type", "text")
@@ -67,6 +72,7 @@ addPlayerButton.addEventListener("click", () => {
     askForPlayer()
 })
 
+//creates html element for specified player and their stats
 function renderStats(name, stats = ["goals", "shots", "time"]){
 
     const statsElem = document.createElement("section")
@@ -99,7 +105,7 @@ function renderStats(name, stats = ["goals", "shots", "time"]){
 
 }
 
-//displays all players and stats for each player
+//creates an html element for specified player and standard stats for player
 function renderPlayer(name){
     console.log(teamList[name])
 
@@ -125,6 +131,7 @@ function renderPlayer(name){
     return player
 }
 
+//adds an element as a child of parentElem
 function render(parentElem, elem){
     parentElem.appendChild(elem)
 }
