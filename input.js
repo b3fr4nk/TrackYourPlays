@@ -2,7 +2,7 @@ const teamList = {}
 const main = document.getElementById("main")
 
 //template for player object
-function player(name){
+function Player(name){
     this.name = name
 
     this.goals = 0
@@ -41,8 +41,30 @@ function updateStat(playername, statName, newValue){
     teamList[playername][statName] = newValue
 }
 
-function getGameNum(playerName){
-    return teamList[playerName]["game"]
+function compareStats(player, stat){
+    let delta = 0
+
+    const stat1 = player[stat]
+    const stat2 = player["next"][stat]
+
+    if(stat1 > stat2){
+        delta = -(stat1/stat2)
+    }
+
+    else{
+        delta = stat1/stat2
+    }
+
+    console.log(stat1)
+    console.log(stat2)
+    
+    const statChange = document.createElement("p")
+    statChange.setAttribute("class", "statChange")
+    statChange.setAttribute("id", `${stat1}/${stat2}-change`)
+
+    statChange.innerHTML = delta
+
+    return statChange
 }
 
 //creates a input field for name of new stat
@@ -63,8 +85,6 @@ function askForStat(playerName){
 //adds a new player to the team and adds them to the page
 function addToTeam(player){
     teamList[player["name"]] = player
-
-    render(main, renderPlayer(player["name"]))
 }
 
 //creates an input field for the name of new player
@@ -76,7 +96,8 @@ function askForPlayer() {
 
     playerNameQuery.addEventListener("keypress", function (e) {
         if (e.key == "Enter") {
-            addToTeam(new player(playerNameQuery.value))
+            addToTeam(new Player(playerNameQuery.value))
+            render(main, renderPlayer(playerNameQuery.value))
             popupArea.removeChild(playerNameQuery)
         }
     })
@@ -93,32 +114,38 @@ addPlayerButton.addEventListener("click", () => {
 })
 
 //creates html element for specified player and their stats
-function renderStats(name, stats = ["goals", "shots", "time", "game"]){
+function renderStats(name, stats = ["goals", "shots", "time", "game"], nameID = name){
 
     const statsElem = document.createElement("section")
     statsElem.setAttribute("class", "stats")
-    statsElem.setAttribute("id", `${name}-stats}`)
+    statsElem.setAttribute("id", `${nameID}-stats-${teamList[nameID]}`)
 
 
     for (let j = 0; j < stats.length; j++) {
 
-        const stat = document.createElement("input")
-        stat.setAttribute("type", "number")
-        stat.setAttribute("value", teamList[name][stats[j]])
-        stat.setAttribute("id", `${name}-${stats[j]}`)
+        const statIn = document.createElement("input")
+        statIn.setAttribute("type", "number")
+        statIn.setAttribute("value", teamList[nameID][stats[j]])
+        statIn.setAttribute("id", `${stats[j]}`)
 
-        stat.addEventListener("input", function (){
-            updateStat(name, Number(stats[j]), stat.value)
-            console.log(teamList[name])
+        statIn.addEventListener("input", function (){
+
+            updateStat(nameID, statIn.id, Number(statIn.value))
+            
+            statChange = compareStats(teamList[name], stats[j])
+            
+            console.log(teamList[nameID])
+
+            statsElem.appendChild(statChange)
         })
         // stat.setAttribute("class", teamList[i].key(j))
 
         const statLabel = document.createElement("label")
-        statLabel.setAttribute("for", `${name}-${stats[j]}`)
+        statLabel.setAttribute("for", `${nameID}-${stats[j]}`)
         statLabel.innerHTML = `${stats[j]}`
 
         statsElem.appendChild(statLabel)
-        statsElem.appendChild(stat)
+        statsElem.appendChild(statIn)
     }
 
     return statsElem
@@ -145,22 +172,36 @@ function renderPlayer(name){
     })
 
     //adds add game button and label to each player
-    const addGameButtonTemp = new addGameButton(name)
+    const addGameButtonTemp = new addGameButton()
     addGameButtonTemp["button"].addEventListener("click", function () {
+        // teamList[name]["game"]++
+        // for (let i in teamList[name]) {
+        //     if (i != "name") {
+        //         if(i.includes("2")){
+        //             break
+        //         }
+        //         addStat(`${i}${teamList[name]["game"]}`, name)
+        //         stats.push(i)
+        //     }
+        // }
+        newGame = Object.assign({}, teamList[name])
+        newGame["game"]++
+        newGame["name"] = `${name}${newGame["game"]}`
+        
+        addToTeam(newGame)
+        teamList[name]["next"] = newGame
+
         stats = []
-        teamList[name]["game"]++
-        for (let i in teamList[name]) {
+
+        for (let i in newGame) {
             if (i != "name") {
-                if(i.includes("2")){
-                    break
-                }
-                addStat(`${i} ${getGameNum(name)}`, name)
                 stats.push(i)
             }
         }
 
+        console.log(teamList)
 
-        const rendered = renderStats(name, stats)
+        const rendered = renderStats(name, stats, newGame["name"])
         render(player, rendered)
     })
 
@@ -171,8 +212,6 @@ function renderPlayer(name){
     player.appendChild(addGameButtonTemp["button"])
 
     render(player, renderStats(name))
-
-    
 
     return player
 }
