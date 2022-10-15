@@ -55,6 +55,8 @@ function compareStats(player, stat){
     delta *= 100
     delta -= 100
 
+    delta = Math.round(delta)
+
     //check if there is already a stat change element for stat if not create a new one
     if (typeof teamList[playerName]["statChange"] !== "undefined" && teamList[playerName]["statChange"].id === `${stat}-change`){
         teamList[playerName]["statChange"].innerHTML = `${stat}: ${delta}%`

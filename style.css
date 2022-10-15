@@ -3,6 +3,8 @@ body{
     width: 100%;
     margin: 0;
     padding: 0%;
+
+    background-color: rgb(255, 203, 11);
 }
 
 #main{
@@ -13,7 +15,7 @@ body{
     align-content: center;
 
     font-size: 1em;
-    margin: 2em;
+    margin: 0em;
 }
 
 h2{
@@ -21,12 +23,24 @@ h2{
     padding: 0.5rem;
 }
 
+.background{
+    display: flex;
+    flex-direction: row;
+    
+    padding: 4rem;
+    padding: 1rem;
+    position: relative;
+    width: 100%;
+    background-color: black;
+}
 .player{
     display: flex;
     flex-direction: row;
     border-color: grey;
     border-radius: 3px;
     border-style: solid;
+    border-radius: 10px;
+    background-color: white;
 
     justify-content: flex-start;
     align-items: center;
