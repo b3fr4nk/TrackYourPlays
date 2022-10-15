@@ -8,29 +8,27 @@ function Player(name){
     this.goals = 0
     this.shots = 0
     this.time = 0
-    this.game = 1
+    this.games = 1
 }
 
 //template for addGameButton and Label
 function addGameButton(playerName) {
-    this.button = document.createElement("input")
-    this.button.setAttribute("id", `${playerName}-add-game`)
+    this.button = document.createElement("button")
+    this.button.setAttribute("id", `${playerName}-add-games`)
     this.button.setAttribute("type", "button")
+    this.button.innerHTML = "Add Game"
 
-    this.label = document.createElement("label")
-    this.label.setAttribute("for", `${playerName}-add-game`)
-    this.label.innerHTML = "Add Game"
+    // this.label = document.createElement("label")
+    // this.label.setAttribute("for", `${playerName}-add-games`)
+    // this.label.innerHTML = "Add Game"
 }
 
 //template for addStatButton and Label
 function addStatButton(playerName){
-    this.button = document.createElement("input")
+    this.button = document.createElement("button")
     this.button.setAttribute("id", `${playerName}-add-stat`)
     this.button.setAttribute("type", "button")
-
-    this.label = document.createElement("label")
-    this.label.setAttribute("for", `${playerName}-add-stat`)
-    this.label.innerHTML = "Add Stat"
+    this.button.innerHTML = "Add Stat"
 }
 
 function addStat(statName, playerName){
@@ -39,32 +37,54 @@ function addStat(statName, playerName){
 
 function updateStat(playername, statName, newValue){
     teamList[playername][statName] = newValue
+
+    console.log(teamList[playername])
 }
 
+//compare stats between two games and return new stat change elem or update previous element
 function compareStats(player, stat){
     let delta = 0
+
+    const playerName = player["name"]
 
     const stat1 = player[stat]
     const stat2 = player["next"][stat]
 
-    if(stat1 > stat2){
-        delta = -(stat1/stat2)
-    }
+    delta = stat2/stat1
 
+    delta *= 100
+    delta -= 100
+
+    //check if there is already a stat change element for stat if not create a new one
+    if (typeof teamList[playerName]["statChange"] !== "undefined" && teamList[playerName]["statChange"].id === `${stat}-change`){
+        teamList[playerName]["statChange"].innerHTML = `${stat}: ${delta}%`
+
+        if(delta > 0){
+            teamList[playerName]["statChange"].style.color = "#0f0"
+        }
+        else{
+            teamList[playerName]["statChange"].style.color = "#f00"
+
+        }
+
+        return null
+    }
+        
     else{
-        delta = stat1/stat2
+
+        const statChange = document.createElement("p")
+        statChange.setAttribute("class", "statChange-value")
+        statChange.setAttribute("id", `${stat}-change`)
+
+        statChange.innerHTML = `${stat}: ${delta}%`
+
+        teamList[playerName]["statChange"] = statChange
+
+        return statChange
+
     }
-
-    console.log(stat1)
-    console.log(stat2)
     
-    const statChange = document.createElement("p")
-    statChange.setAttribute("class", "statChange")
-    statChange.setAttribute("id", `${stat1}/${stat2}-change`)
-
-    statChange.innerHTML = delta
-
-    return statChange
+    
 }
 
 //creates a input field for name of new stat
@@ -114,11 +134,11 @@ addPlayerButton.addEventListener("click", () => {
 })
 
 //creates html element for specified player and their stats
-function renderStats(name, stats = ["goals", "shots", "time", "game"], nameID = name){
+function renderStats(name, stats = ["goals", "shots", "time", "games"], nameID = name){
 
     const statsElem = document.createElement("section")
     statsElem.setAttribute("class", "stats")
-    statsElem.setAttribute("id", `${nameID}-stats-${teamList[nameID]}`)
+    statsElem.setAttribute("id", `${nameID}-stats`)
 
 
     for (let j = 0; j < stats.length; j++) {
@@ -131,12 +151,15 @@ function renderStats(name, stats = ["goals", "shots", "time", "game"], nameID = 
         statIn.addEventListener("input", function (){
 
             updateStat(nameID, statIn.id, Number(statIn.value))
-            
-            statChange = compareStats(teamList[name], stats[j])
-            
-            console.log(teamList[nameID])
 
-            statsElem.appendChild(statChange)
+            if(nameID !== name){
+                statChange = compareStats(teamList[name], stats[j])
+                if (statChange != null) {
+                    const gameStats = document.getElementById(`${nameID}-statChange`)
+                    gameStats.appendChild(statChange)
+                }
+            }
+            
         })
         // stat.setAttribute("class", teamList[i].key(j))
 
@@ -154,7 +177,6 @@ function renderStats(name, stats = ["goals", "shots", "time", "game"], nameID = 
 
 //creates an html element for specified player and standard stats for player
 function renderPlayer(name){
-    console.log(teamList[name])
 
     const player = document.createElement("section")
     player.setAttribute("id", `${name}`)
@@ -171,22 +193,14 @@ function renderPlayer(name){
         askForStat(name)
     })
 
-    //adds add game button and label to each player
-    const addGameButtonTemp = new addGameButton()
+    //adds add games button and label to each player
+    const addGameButtonTemp = new addGameButton(name)
     addGameButtonTemp["button"].addEventListener("click", function () {
-        // teamList[name]["game"]++
-        // for (let i in teamList[name]) {
-        //     if (i != "name") {
-        //         if(i.includes("2")){
-        //             break
-        //         }
-        //         addStat(`${i}${teamList[name]["game"]}`, name)
-        //         stats.push(i)
-        //     }
-        // }
+
+        teamList[name]["games"]++
+
         newGame = Object.assign({}, teamList[name])
-        newGame["game"]++
-        newGame["name"] = `${name}${newGame["game"]}`
+        newGame["name"] = `${name}${newGame["games"]}`
         
         addToTeam(newGame)
         teamList[name]["next"] = newGame
@@ -194,21 +208,21 @@ function renderPlayer(name){
         stats = []
 
         for (let i in newGame) {
-            if (i != "name") {
+            if (i != "name" && i != "statChange" && i != "next") {
                 stats.push(i)
             }
         }
 
-        console.log(teamList)
-
         const rendered = renderStats(name, stats, newGame["name"])
+        const statChangeDiv = document.createElement("section")
+        statChangeDiv.setAttribute("id", `${newGame["name"]}-statChange`)
+        statChangeDiv.setAttribute("class", "statChange")
         render(player, rendered)
+        render(player, statChangeDiv)
     })
 
-    player.appendChild(addStatButtonTemp["label"])
     player.appendChild(addStatButtonTemp["button"])
 
-    player.appendChild(addGameButtonTemp["label"])
     player.appendChild(addGameButtonTemp["button"])
 
     render(player, renderStats(name))
